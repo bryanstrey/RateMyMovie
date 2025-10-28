@@ -13,7 +13,7 @@ export default function LoginScreen() {
   const handleLogin = () => {
     try {
       login(email, password);
-      router.push("/profile");
+      router.push("../profile");
     } catch (err: any) {
       Alert.alert("Erro", err.message);
     }
@@ -44,7 +44,7 @@ export default function LoginScreen() {
         <Text style={styles.buttonText}>Entrar</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push("/register")}>
+      <TouchableOpacity onPress={() => router.push("../register")}>
         <Text style={styles.link}>Não tem conta? Cadastre-se</Text>
       </TouchableOpacity>
     </View>
