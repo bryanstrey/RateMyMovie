@@ -1,11 +1,13 @@
-import React from "react";
 import { Stack } from "expo-router";
 import { AuthProvider } from "../../contexts/AuthContext";
+import { MoviesProvider } from "../../contexts/MoviesContext";
 
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <Stack screenOptions={{ headerShown: false }} />
+      <MoviesProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </MoviesProvider>
     </AuthProvider>
   );
 }

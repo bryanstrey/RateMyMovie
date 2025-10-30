@@ -47,7 +47,7 @@ export default function SearchScreen() {
   const renderMovie = ({ item }: { item: Movie }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => router.push({ pathname: "/movieDetails", params: { movie: JSON.stringify(item) } })}
+      onPress={() => router.push({ pathname: "../movieDetails", params: { movie: JSON.stringify(item) } })}
     >
       {item.poster_path ? (
         <Image
