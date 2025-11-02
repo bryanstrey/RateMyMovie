@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -26,6 +26,26 @@ export default function SearchScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // 🔥 Busca inicial de filmes populares
+  useEffect(() => {
+    const fetchPopularMovies = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${TMDB_BASE_URL}/movie/popular?api_key=${TMDB_API_KEY}&language=pt-BR&page=1`
+        );
+        const data = await response.json();
+        setMovies(data.results || []);
+      } catch (error) {
+        console.error("Erro ao carregar filmes populares:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPopularMovies();
+  }, []);
+
   const searchMovies = async () => {
     if (!query.trim()) return;
     setLoading(true);
@@ -47,13 +67,17 @@ export default function SearchScreen() {
   const renderMovie = ({ item }: { item: Movie }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => router.push({ pathname: "../movieDetails", params: { movie: JSON.stringify(item) } })}
+      onPress={() =>
+        router.push({
+          pathname: "../movieDetails",
+          params: { movie: JSON.stringify(item) },
+        })
+      }
     >
       {item.poster_path ? (
         <Image
           source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
           style={styles.poster}
-          accessibilityLabel={`Pôster do filme ${item.title}`}
         />
       ) : (
         <View style={[styles.poster, styles.noImage]}>
@@ -69,7 +93,9 @@ export default function SearchScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Buscar Filmes 🎥</Text>
+      <Text style={styles.header}>
+        {query ? "Resultados da busca 🎬" : "Filmes Populares 🎥"}
+      </Text>
 
       <View style={styles.searchBox}>
         <TextInput
@@ -78,7 +104,6 @@ export default function SearchScreen() {
           value={query}
           onChangeText={setQuery}
           onSubmitEditing={searchMovies}
-          accessibilityLabel="Campo de busca de filmes"
         />
         <TouchableOpacity style={styles.button} onPress={searchMovies}>
           <Text style={styles.buttonText}>Buscar</Text>

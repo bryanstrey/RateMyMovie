@@ -1,16 +1,16 @@
+import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Image,
-  Alert,
-  ScrollView,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function RegisterScreen() {
@@ -52,7 +52,7 @@ export default function RegisterScreen() {
     try {
       await register({ name, email, password, imageUri: imageUri || undefined });
       Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
-      router.push("../profile");
+      router.push("/home");
     } catch (err: any) {
       Alert.alert("Erro", err.message);
     }

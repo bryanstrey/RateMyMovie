@@ -36,7 +36,7 @@ export default function ProfileScreen() {
         style: "destructive",
         onPress: () => {
           logout();
-          router.push("/");
+          router.push("../index");
         },
       },
     ]);

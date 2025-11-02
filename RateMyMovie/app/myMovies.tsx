@@ -6,13 +6,25 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { useMovies } from "../contexts/MoviesContext";
 import { useRouter } from "expo-router";
 
 export default function MyMoviesScreen() {
-  const { myMovies } = useMovies();
+  const { myMovies, removeMovie } = useMovies();
   const router = useRouter();
+
+  const handleRemove = (id: number, title: string) => {
+    Alert.alert(
+      "Remover filme",
+      `Deseja remover "${title}" dos seus favoritos?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Remover", style: "destructive", onPress: () => removeMovie(id) },
+      ]
+    );
+  };
 
   const renderMovie = ({ item }: any) => (
     <View style={styles.card}>
@@ -27,6 +39,7 @@ export default function MyMoviesScreen() {
           <Text>Sem imagem</Text>
         </View>
       )}
+
       <View style={styles.info}>
         <Text style={styles.title}>{item.title}</Text>
         <View style={styles.stars}>
@@ -39,13 +52,21 @@ export default function MyMoviesScreen() {
             </Text>
           ))}
         </View>
+
+        {/* Botão de remover */}
+        <TouchableOpacity
+          style={styles.removeButton}
+          onPress={() => handleRemove(item.id, item.title)}
+        >
+          <Text style={styles.removeText}>🗑️ Remover</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>🎬 Meus Filmes Assistidos</Text>
+      <Text style={styles.header}>🎬 Meus Filmes Favoritos</Text>
 
       {myMovies.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -88,9 +109,17 @@ const styles = StyleSheet.create({
   },
   info: { flex: 1, padding: 10, justifyContent: "center" },
   title: { fontSize: 16, fontWeight: "bold", marginBottom: 6 },
-  stars: { flexDirection: "row" },
+  stars: { flexDirection: "row", marginBottom: 6 },
   star: { fontSize: 20, color: "#ccc", marginRight: 2 },
   starSelected: { color: "#ffcc00" },
+  removeButton: {
+    backgroundColor: "#ff4444",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    alignSelf: "flex-start",
+  },
+  removeText: { color: "#fff", fontWeight: "bold" },
   emptyContainer: {
     flex: 1,
     alignItems: "center",

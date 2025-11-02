@@ -12,8 +12,8 @@ type AuthContextType = {
   user: User | null;
   users: User[];
   register: (newUser: User) => Promise<void>;
-  login: (email: string, password: string) => void;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -22,33 +22,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
 
+  // 🔄 Carregar usuários e sessão ativa ao iniciar
   useEffect(() => {
-    loadUsers();
-  }, []);
+    const loadData = async () => {
+      const savedUsers = await AsyncStorage.getItem("users");
+      const savedUser = await AsyncStorage.getItem("currentUser");
 
-  const loadUsers = async () => {
-    const saved = await AsyncStorage.getItem("users");
-    if (saved) setUsers(JSON.parse(saved));
-  };
+      if (savedUsers) setUsers(JSON.parse(savedUsers));
+      if (savedUser) setUser(JSON.parse(savedUser));
+    };
+    loadData();
+  }, []);
 
   const saveUsers = async (newUsers: User[]) => {
     setUsers(newUsers);
     await AsyncStorage.setItem("users", JSON.stringify(newUsers));
   };
 
+  // 📝 Registrar novo usuário
   const register = async (newUser: User) => {
+    const exists = users.find(u => u.email === newUser.email);
+    if (exists) throw new Error("E-mail já cadastrado!");
+
     const updated = [...users, newUser];
     await saveUsers(updated);
     setUser(newUser);
+    await AsyncStorage.setItem("currentUser", JSON.stringify(newUser));
   };
 
-  const login = (email: string, password: string) => {
+  // 🔑 Fazer login
+  const login = async (email: string, password: string) => {
     const existing = users.find(u => u.email === email && u.password === password);
-    if (existing) setUser(existing);
-    else throw new Error("Usuário ou senha inválidos");
+    if (!existing) throw new Error("Usuário ou senha inválidos");
+
+    setUser(existing);
+    await AsyncStorage.setItem("currentUser", JSON.stringify(existing));
   };
 
-  const logout = () => setUser(null);
+  // 🚪 Logout
+  const logout = async () => {
+    setUser(null);
+    await AsyncStorage.removeItem("currentUser");
+  };
 
   return (
     <AuthContext.Provider value={{ user, users, register, login, logout }}>

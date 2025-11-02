@@ -13,7 +13,7 @@ export default function LoginScreen() {
   const handleLogin = () => {
     try {
       login(email, password);
-      router.push("../profile");
+      router.push("../home");
     } catch (err: any) {
       Alert.alert("Erro", err.message);
     }

@@ -37,6 +37,14 @@ export default function HomeScreen() {
           <Text style={styles.welcome}>
             Olá, <Text style={styles.name}>{currentUser.name}</Text> 👋
           </Text>
+
+          {/* 👤 Novo botão para acessar o perfil */}
+          <TouchableOpacity
+            style={[styles.button, styles.profileButton]}
+            onPress={() => router.push("/profile")}
+          >
+            <Text style={styles.buttonText}>👤 Meu Perfil</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -80,7 +88,7 @@ const styles = StyleSheet.create({
   },
   profileContainer: {
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 30,
   },
   profileImage: {
     width: 90,
@@ -96,6 +104,7 @@ const styles = StyleSheet.create({
   welcome: {
     fontSize: 16,
     color: "#555",
+    marginBottom: 10,
   },
   name: {
     fontWeight: "bold",
@@ -116,5 +125,10 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
+  },
+  profileButton: {
+    backgroundColor: "#5856D6",
+    marginTop: 10,
+    width: 200,
   },
 });

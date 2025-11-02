@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Movie = {
   id: number;
@@ -27,6 +28,33 @@ const MoviesContext = createContext<MoviesContextType | undefined>(undefined);
 export const MoviesProvider = ({ children }: { children: ReactNode }) => {
   const [myMovies, setMyMovies] = useState<Movie[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  // 🔄 Carregar filmes do usuário logado
+  useEffect(() => {
+    const loadMovies = async () => {
+      if (currentUser) {
+        const key = `movies_${currentUser.email}`;
+        const savedMovies = await AsyncStorage.getItem(key);
+        if (savedMovies) {
+          setMyMovies(JSON.parse(savedMovies));
+        } else {
+          setMyMovies([]);
+        }
+      }
+    };
+    loadMovies();
+  }, [currentUser]);
+
+  // 💾 Salvar filmes quando a lista mudar
+  useEffect(() => {
+    const saveMovies = async () => {
+      if (currentUser) {
+        const key = `movies_${currentUser.email}`;
+        await AsyncStorage.setItem(key, JSON.stringify(myMovies));
+      }
+    };
+    saveMovies();
+  }, [myMovies, currentUser]);
 
   const addMovie = (movie: Movie) => {
     setMyMovies((prev) => {
