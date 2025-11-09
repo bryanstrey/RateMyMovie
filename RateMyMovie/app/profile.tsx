@@ -16,27 +16,27 @@ export default function ProfileScreen() {
 
   if (!user) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.message}>Nenhum usuário logado.</Text>
+      <View style={styles.emptyContainer}>
+        <Text style={styles.message}>Nenhum usuário logado 😕</Text>
         <TouchableOpacity
-          onPress={() => router.push("/")}
-          style={styles.button}
+          onPress={() => router.replace("/")}
+          style={styles.backButton}
         >
-          <Text style={styles.buttonText}>Voltar ao Login</Text>
+          <Text style={styles.backButtonText}>Voltar ao Login</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   const handleLogout = () => {
-    Alert.alert("Sair", "Deseja realmente sair?", [
+    Alert.alert("Sair", "Deseja realmente sair da conta?", [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Sair",
         style: "destructive",
         onPress: () => {
           logout();
-          router.push("../index");
+          router.replace("/");
         },
       },
     ]);
@@ -44,60 +44,128 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      {user.imageUri ? (
-        <Image source={{ uri: user.imageUri }} style={styles.avatar} />
-      ) : (
-        <View style={[styles.avatar, styles.placeholder]}>
-          <Text style={{ color: "#777" }}>Sem foto</Text>
-        </View>
-      )}
+      <Text style={styles.title}>👤 Meu Perfil</Text>
 
-      <Text style={styles.name}>{user.name}</Text>
-      <Text style={styles.email}>{user.email}</Text>
+      <View style={styles.card}>
+        {user.imageUri ? (
+          <Image source={{ uri: user.imageUri }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatar, styles.placeholder]}>
+            <Text style={{ color: "#888" }}>Sem foto</Text>
+          </View>
+        )}
 
-      <TouchableOpacity style={styles.button} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Sair</Text>
-      </TouchableOpacity>
+        <Text style={styles.name}>{user.name}</Text>
+        <Text style={styles.email}>{user.email}</Text>
+
+        {/* <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>🚪 Sair da Conta</Text>
+        </TouchableOpacity> */}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // === Layout principal ===
   container: {
     flex: 1,
+    backgroundColor: "#fafafa",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
     padding: 20,
   },
-  avatar: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
+
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#111",
     marginBottom: 20,
   },
-  placeholder: {
+
+  // === Card central ===
+  card: {
+    backgroundColor: "#fff",
+    width: "100%",
+    maxWidth: 380,
+    borderRadius: 16,
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4,
+  },
+
+  // === Avatar / foto ===
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 15,
     backgroundColor: "#eee",
+  },
+  placeholder: {
     justifyContent: "center",
     alignItems: "center",
   },
+
+  // === Infos ===
   name: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 8,
+    color: "#E50914",
+    marginBottom: 6,
   },
   email: {
     fontSize: 16,
-    color: "#666",
-    marginBottom: 20,
+    color: "#555",
+    marginBottom: 25,
   },
-  button: {
-    backgroundColor: "#ff4444",
-    padding: 12,
-    borderRadius: 8,
-    width: "60%",
+
+  // === Botão sair ===
+  logoutButton: {
+    backgroundColor: "#E50914",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    width: "80%",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
-  message: { fontSize: 18, marginBottom: 16 },
+  logoutText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+
+  // === Caso não logado ===
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fafafa",
+    padding: 20,
+  },
+  message: {
+    fontSize: 18,
+    color: "#444",
+    marginBottom: 16,
+  },
+  backButton: {
+    backgroundColor: "#E50914",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+  },
+  backButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
+  },
 });

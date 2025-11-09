@@ -36,12 +36,13 @@ export default function MyMoviesScreen() {
         />
       ) : (
         <View style={[styles.poster, styles.noImage]}>
-          <Text>Sem imagem</Text>
+          <Text style={{ color: "#888" }}>Sem imagem</Text>
         </View>
       )}
 
       <View style={styles.info}>
         <Text style={styles.title}>{item.title}</Text>
+
         <View style={styles.stars}>
           {[1, 2, 3, 4, 5].map((i) => (
             <Text
@@ -53,7 +54,6 @@ export default function MyMoviesScreen() {
           ))}
         </View>
 
-        {/* Botão de remover */}
         <TouchableOpacity
           style={styles.removeButton}
           onPress={() => handleRemove(item.id, item.title)}
@@ -72,10 +72,10 @@ export default function MyMoviesScreen() {
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Nenhum filme salvo ainda.</Text>
           <TouchableOpacity
-            style={styles.button}
+            style={styles.addButton}
             onPress={() => router.push("/search")}
           >
-            <Text style={styles.buttonText}>Buscar Filmes</Text>
+            <Text style={styles.addButtonText}>+ Buscar Filmes</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -83,7 +83,8 @@ export default function MyMoviesScreen() {
           data={myMovies}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderMovie}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -91,46 +92,100 @@ export default function MyMoviesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 20 },
-  header: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fafafa",
+    padding: 20,
+  },
+  header: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 20,
+    color: "#111",
+    textAlign: "center",
+  },
+  listContent: {
+    paddingBottom: 30,
+  },
   card: {
     flexDirection: "row",
-    backgroundColor: "#f9f9f9",
-    borderRadius: 10,
-    marginBottom: 12,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    marginBottom: 14,
     overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  poster: { width: 100, height: 150 },
+  poster: {
+    width: 100,
+    height: 150,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+  },
   noImage: {
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#eee",
   },
-  info: { flex: 1, padding: 10, justifyContent: "center" },
-  title: { fontSize: 16, fontWeight: "bold", marginBottom: 6 },
-  stars: { flexDirection: "row", marginBottom: 6 },
-  star: { fontSize: 20, color: "#ccc", marginRight: 2 },
-  starSelected: { color: "#ffcc00" },
+  info: {
+    flex: 1,
+    padding: 12,
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#222",
+    marginBottom: 6,
+  },
+  stars: {
+    flexDirection: "row",
+    marginBottom: 8,
+  },
+  star: {
+    fontSize: 20,
+    color: "#ccc",
+    marginRight: 2,
+  },
+  starSelected: {
+    color: "#FFD700",
+  },
   removeButton: {
-    backgroundColor: "#ff4444",
+    backgroundColor: "#E50914",
     paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     borderRadius: 6,
     alignSelf: "flex-start",
+    marginTop: 4,
   },
-  removeText: { color: "#fff", fontWeight: "bold" },
+  removeText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
+  },
   emptyContainer: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
   },
-  emptyText: { fontSize: 16, color: "#555", marginBottom: 10 },
-  button: {
-    backgroundColor: "#ff4444",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+  emptyText: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 15,
   },
-  buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+  addButton: {
+    backgroundColor: "#E50914",
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 10,
+    elevation: 3,
+  },
+  addButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
+  },
 });

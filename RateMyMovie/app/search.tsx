@@ -26,7 +26,6 @@ export default function SearchScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // 🔥 Busca inicial de filmes populares
   useEffect(() => {
     const fetchPopularMovies = async () => {
       setLoading(true);
@@ -81,12 +80,16 @@ export default function SearchScreen() {
         />
       ) : (
         <View style={[styles.poster, styles.noImage]}>
-          <Text>Sem imagem</Text>
+          <Text style={{ color: "#888" }}>Sem imagem</Text>
         </View>
       )}
       <View style={styles.info}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.date}>📅 {item.release_date}</Text>
+        <Text numberOfLines={2} style={styles.title}>
+          {item.title}
+        </Text>
+        <Text style={styles.date}>
+          {item.release_date ? `📅 ${item.release_date}` : "Data não informada"}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -94,30 +97,41 @@ export default function SearchScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>
-        {query ? "Resultados da busca 🎬" : "Filmes Populares 🎥"}
+        {query ? "Resultados da Busca 🎬" : "Filmes Populares 🎥"}
       </Text>
 
       <View style={styles.searchBox}>
         <TextInput
           style={styles.input}
           placeholder="Digite o nome do filme..."
+          placeholderTextColor="#999"
           value={query}
           onChangeText={setQuery}
           onSubmitEditing={searchMovies}
         />
-        <TouchableOpacity style={styles.button} onPress={searchMovies}>
-          <Text style={styles.buttonText}>Buscar</Text>
+        <TouchableOpacity
+          style={[styles.button, loading && { opacity: 0.7 }]}
+          onPress={searchMovies}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? "Buscando..." : "Buscar"}
+          </Text>
         </TouchableOpacity>
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#ff4444" />
+        <View style={styles.loadingArea}>
+          <ActivityIndicator size="large" color="#E50914" />
+          <Text style={styles.loadingText}>Carregando filmes...</Text>
+        </View>
       ) : (
         <FlatList
           data={movies}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderMovie}
-          contentContainerStyle={{ paddingBottom: 20 }}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -125,39 +139,98 @@ export default function SearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  header: { fontSize: 24, fontWeight: "bold", marginBottom: 12 },
-  searchBox: { flexDirection: "row", marginBottom: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fafafa",
+    padding: 20,
+  },
+  header: {
+    fontSize: 26,
+    fontWeight: "bold",
+    marginBottom: 16,
+    color: "#111",
+    textAlign: "center",
+  },
+  searchBox: {
+    flexDirection: "row",
+    marginBottom: 20,
+    alignItems: "center",
+  },
   input: {
     flex: 1,
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 16,
     marginRight: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   button: {
-    backgroundColor: "#ff4444",
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    justifyContent: "center",
-  },
-  buttonText: { color: "#fff", fontWeight: "bold" },
-  card: {
-    flexDirection: "row",
-    marginBottom: 12,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#E50914",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderRadius: 10,
-    overflow: "hidden",
+    justifyContent: "center",
     elevation: 2,
   },
-  poster: { width: 100, height: 150 },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+  card: {
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    marginBottom: 14,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  poster: {
+    width: 100,
+    height: 150,
+  },
   noImage: {
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#eee",
   },
-  info: { flex: 1, padding: 10 },
-  title: { fontWeight: "bold", fontSize: 16 },
-  date: { color: "#666", marginTop: 4 },
+  info: {
+    flex: 1,
+    padding: 12,
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#222",
+    marginBottom: 6,
+  },
+  date: {
+    fontSize: 14,
+    color: "#666",
+  },
+  listContent: {
+    paddingBottom: 30,
+  },
+  loadingArea: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+    color: "#444",
+    fontSize: 16,
+  },
 });

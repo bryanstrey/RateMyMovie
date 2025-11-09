@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Image,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "../contexts/AuthContext";
@@ -16,12 +17,9 @@ export default function HomeScreen() {
   const { user, logout, isLoading } = useAuth();
   const { myMovies } = useMovies();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  // ✅ Novo estado para evitar piscar “Nenhum usuário logado”
   const [checkingUser, setCheckingUser] = useState(true);
 
   useEffect(() => {
-    // espera 150ms pra dar tempo do contexto propagar o user
     const timeout = setTimeout(() => setCheckingUser(false), 150);
     return () => clearTimeout(timeout);
   }, [user]);
@@ -30,28 +28,24 @@ export default function HomeScreen() {
     try {
       setIsLoggingOut(true);
       await logout();
-      // Aguarda um pequeno delay pra garantir que o contexto foi atualizado
       await new Promise((res) => setTimeout(res, 100));
-      router.replace("/"); // ✅ redireciona para a tela de login (index.tsx)
+      router.replace("/"); // volta para login
     } catch (err) {
       console.error("Erro ao fazer logout:", err);
     } finally {
       setIsLoggingOut(false);
     }
   };
-  
 
-  // 🧠 Enquanto o AuthContext ainda carrega
   if (isLoading || checkingUser) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#E50914" />
         <Text style={styles.loadingText}>Carregando usuário...</Text>
       </View>
     );
   }
 
-  // 🧠 Se o logout está em andamento
   if (isLoggingOut) {
     return (
       <View style={styles.loadingContainer}>
@@ -61,14 +55,13 @@ export default function HomeScreen() {
     );
   }
 
-  // 🧠 Caso ainda não haja usuário (erro real)
   if (!user) {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.loadingText}>Nenhum usuário logado 😕</Text>
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: "#007AFF" }]}
-          onPress={() => router.replace("../index")}
+          style={[styles.button, { backgroundColor: "#E50914" }]}
+          onPress={() => router.replace("/")}
         >
           <Text style={styles.buttonText}>Ir para o Login</Text>
         </TouchableOpacity>
@@ -76,12 +69,11 @@ export default function HomeScreen() {
     );
   }
 
-  // ✅ Usuário carregado normalmente
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>🍿 RateMyMovie</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>🎬 RateMyMovie</Text>
 
-      <View style={styles.profileContainer}>
+      <View style={styles.card}>
         {user.imageUri ? (
           <Image source={{ uri: user.imageUri }} style={styles.profileImage} />
         ) : (
@@ -94,107 +86,116 @@ export default function HomeScreen() {
           Olá, <Text style={styles.name}>{user.name}</Text> 👋
         </Text>
 
-        <TouchableOpacity
-          style={[styles.button, styles.profileButton]}
-          onPress={() => router.push("/profile")}
-        >
-          <Text style={styles.buttonText}>👤 Meu Perfil</Text>
-        </TouchableOpacity>
-
         <Text style={styles.moviesInfo}>
-          Você tem {myMovies.length} filme
-          {myMovies.length === 1 ? "" : "s"} salvo
+          Você tem{" "}
+          <Text style={{ fontWeight: "bold" }}>{myMovies.length}</Text>{" "}
+          filme{myMovies.length === 1 ? "" : "s"} salvo
           {myMovies.length === 1 ? "" : "s"} 🎥
         </Text>
+
+        <View style={styles.buttonsGroup}>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: "#E50914" }]}
+            onPress={() => router.push("/search")}
+          >
+            <Text style={styles.buttonText}>🔍 Buscar Filmes</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: "#34C759" }]}
+            onPress={() => router.push("/myMovies")}
+          >
+            <Text style={styles.buttonText}>🎬 Meus Filmes</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: "#5856D6" }]}
+            onPress={() => router.push("/profile")}
+          >
+            <Text style={styles.buttonText}>👤 Meu Perfil</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: "#FF3B30" }]}
+            onPress={handleLogout}
+          >
+            <Text style={styles.buttonText}>🚪 Sair</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: "#007AFF" }]}
-        onPress={() => router.push("/search")}
-      >
-        <Text style={styles.buttonText}>🔍 Buscar Filmes</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: "#34C759" }]}
-        onPress={() => router.push("/myMovies")}
-      >
-        <Text style={styles.buttonText}>🎬 Meus Filmes Assistidos</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: "#FF3B30" }]}
-        onPress={handleLogout}
-      >
-        <Text style={styles.buttonText}>🚪 Sair</Text>
-      </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
+    flexGrow: 1,
     justifyContent: "center",
-    padding: 20,
+    alignItems: "center",
+    padding: 25,
+    backgroundColor: "#fafafa",
   },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "bold",
-    marginBottom: 30,
     color: "#111",
+    marginBottom: 25,
   },
-  profileContainer: {
+  card: {
+    width: "100%",
+    maxWidth: 400,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    paddingVertical: 25,
+    paddingHorizontal: 20,
     alignItems: "center",
-    marginBottom: 30,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
   },
   profileImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     marginBottom: 10,
-    backgroundColor: "#ddd",
+    backgroundColor: "#eee",
   },
   noImage: {
     alignItems: "center",
     justifyContent: "center",
   },
   welcome: {
-    fontSize: 16,
-    color: "#555",
-    marginBottom: 10,
+    fontSize: 18,
+    color: "#333",
+    marginBottom: 8,
   },
   name: {
     fontWeight: "bold",
-    color: "#000",
+    color: "#E50914",
   },
   moviesInfo: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 6,
+    fontSize: 15,
+    color: "#555",
+    marginBottom: 20,
+  },
+  buttonsGroup: {
+    width: "100%",
+    alignItems: "center",
+    marginTop: 10,
   },
   button: {
-    width: "80%",
+    width: "100%",
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: "center",
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 2,
+    marginBottom: 12,
   },
   buttonText: {
     color: "#fff",
-    fontWeight: "600",
+    fontWeight: "700",
     fontSize: 16,
-  },
-  profileButton: {
-    backgroundColor: "#5856D6",
-    marginTop: 10,
-    width: 200,
   },
   loadingContainer: {
     flex: 1,
