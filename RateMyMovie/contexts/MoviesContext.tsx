@@ -1,5 +1,7 @@
+// contexts/MoviesContext.tsx
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "./AuthContext";
 
 type Movie = {
   id: number;
@@ -8,78 +10,143 @@ type Movie = {
   rating: number;
 };
 
-type User = {
-  name: string;
-  email: string;
-  image?: string;
-};
-
 type MoviesContextType = {
   myMovies: Movie[];
-  currentUser: User | null;
-  addMovie: (movie: Movie) => void;
-  removeMovie: (id: number) => void;
-  login: (user: User) => void;
-  logout: () => void;
+  addMovie: (movie: Movie) => Promise<void>;
+  removeMovie: (id: number) => Promise<void>;
+  clearMovies: () => Promise<void>;
+  debugListStorage: () => Promise<void>;
 };
 
 const MoviesContext = createContext<MoviesContextType | undefined>(undefined);
 
-export const MoviesProvider = ({ children }: { children: ReactNode }) => {
-  const [myMovies, setMyMovies] = useState<Movie[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+const storageKeyFor = (email: string) => `movies_${email.trim().toLowerCase()}`;
 
-  // 🔄 Carregar filmes do usuário logado
+export const MoviesProvider = ({ children }: { children: ReactNode }) => {
+  const { user, isLoading: authLoading } = useAuth();
+  const [myMovies, setMyMovies] = useState<Movie[]>([]);
+  const [isReady, setIsReady] = useState(false);
+
+  // Quando o Auth terminar de carregar OU o user mudar, carregamos os filmes
   useEffect(() => {
-    const loadMovies = async () => {
-      if (currentUser) {
-        const key = `movies_${currentUser.email}`;
-        const savedMovies = await AsyncStorage.getItem(key);
-        if (savedMovies) {
-          setMyMovies(JSON.parse(savedMovies));
+    const load = async () => {
+      try {
+        // espera o auth carregar
+        if (authLoading) {
+          setIsReady(false);
+          return;
+        }
+
+        if (!user) {
+          setMyMovies([]);
+          setIsReady(true);
+          console.log("[Movies] no user -> cleared in-memory movies");
+          return;
+        }
+
+        const key = storageKeyFor(user.email);
+        const saved = await AsyncStorage.getItem(key);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            setMyMovies(Array.isArray(parsed) ? parsed : []);
+            console.log(`[Movies] Loaded ${Array.isArray(parsed) ? parsed.length : 0} movies for ${user.email}`);
+          } catch (e) {
+            console.error("[Movies] JSON parse error loading movies:", e);
+            setMyMovies([]);
+          }
         } else {
           setMyMovies([]);
+          console.log(`[Movies] No saved movies for ${user.email}`);
         }
+      } catch (err) {
+        console.error("[Movies] Error loading movies:", err);
+        setMyMovies([]);
+      } finally {
+        setIsReady(true);
       }
     };
-    loadMovies();
-  }, [currentUser]);
 
-  // 💾 Salvar filmes quando a lista mudar
-  useEffect(() => {
-    const saveMovies = async () => {
-      if (currentUser) {
-        const key = `movies_${currentUser.email}`;
-        await AsyncStorage.setItem(key, JSON.stringify(myMovies));
-      }
-    };
-    saveMovies();
-  }, [myMovies, currentUser]);
+    load();
+  }, [user, authLoading]);
 
-  const addMovie = (movie: Movie) => {
+  // Persist helper (usar imediatamente quando necessário)
+  const persist = async (movies: Movie[], email: string | undefined) => {
+    if (!email) return;
+    const key = storageKeyFor(email);
+    try {
+      await AsyncStorage.setItem(key, JSON.stringify(movies));
+      console.log(`[Movies] Persisted ${movies.length} movies for ${email}`);
+    } catch (err) {
+      console.error("[Movies] Error persisting movies:", err);
+    }
+  };
+
+  // adicionar e persistir imediatamente
+  const addMovie = async (movie: Movie) => {
+    if (!user) {
+      console.warn("[Movies] addMovie called with no user");
+      throw new Error("Usuário não autenticado");
+    }
+    // atualiza estado e persiste
     setMyMovies((prev) => {
-      const alreadyExists = prev.some((m) => m.id === movie.id);
-      return alreadyExists ? prev : [...prev, movie];
+      const exists = prev.some((m) => m.id === movie.id);
+      if (exists) {
+        console.log("[Movies] movie already exists, skipping add:", movie.id);
+        return prev;
+      }
+      const updated = [...prev, movie];
+      // persiste usando email atual (não depende de loadedUser)
+      persist(updated, user.email);
+      return updated;
     });
   };
 
-  const removeMovie = (id: number) => {
-    setMyMovies((prev) => prev.filter((m) => m.id !== id));
+  // remover e persistir imediatamente
+  const removeMovie = async (id: number) => {
+    if (!user) {
+      console.warn("[Movies] removeMovie called with no user");
+      throw new Error("Usuário não autenticado");
+    }
+    setMyMovies((prev) => {
+      const updated = prev.filter((m) => m.id !== id);
+      persist(updated, user.email);
+      return updated;
+    });
   };
 
-  const login = (user: User) => {
-    setCurrentUser(user);
+  const clearMovies = async () => {
+    if (!user) {
+      setMyMovies([]);
+      return;
+    }
+    const key = storageKeyFor(user.email);
+    try {
+      await AsyncStorage.removeItem(key);
+      setMyMovies([]);
+      console.log(`[Movies] Cleared storage for ${user.email}`);
+    } catch (err) {
+      console.error("[Movies] Error clearing movies:", err);
+      setMyMovies([]);
+    }
   };
 
-  const logout = () => {
-    setCurrentUser(null);
-    setMyMovies([]);
+  const debugListStorage = async () => {
+    try {
+      const allKeys = await AsyncStorage.getAllKeys();
+      const movieKeys = allKeys.filter((k) => k.startsWith("movies_"));
+      console.log("[Movies Debug] movieKeys:", movieKeys);
+      for (const k of movieKeys) {
+        const v = await AsyncStorage.getItem(k);
+        console.log(`[Movies Debug] ${k} =>`, v ? `${JSON.parse(v).length} items` : "empty");
+      }
+    } catch (err) {
+      console.error("[Movies Debug] error listing storage:", err);
+    }
   };
 
   return (
-    <MoviesContext.Provider
-      value={{ myMovies, currentUser, addMovie, removeMovie, login, logout }}
-    >
+    <MoviesContext.Provider value={{ myMovies, addMovie, removeMovie, clearMovies, debugListStorage }}>
       {children}
     </MoviesContext.Provider>
   );
@@ -87,8 +154,6 @@ export const MoviesProvider = ({ children }: { children: ReactNode }) => {
 
 export const useMovies = () => {
   const context = useContext(MoviesContext);
-  if (!context) {
-    throw new Error("useMovies deve ser usado dentro de um MoviesProvider");
-  }
+  if (!context) throw new Error("useMovies deve ser usado dentro de um MoviesProvider");
   return context;
 };

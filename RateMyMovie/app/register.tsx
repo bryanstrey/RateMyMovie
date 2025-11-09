@@ -21,6 +21,7 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 📸 Selecionar imagem da galeria
   const pickImage = async () => {
@@ -50,11 +51,14 @@ export default function RegisterScreen() {
     }
 
     try {
+      setIsSubmitting(true);
       await register({ name, email, password, imageUri: imageUri || undefined });
       Alert.alert("Sucesso", "Cadastro realizado com sucesso!");
-      router.push("/home");
+      router.replace("/"); // ✅ redireciona para a tela principal
     } catch (err: any) {
       Alert.alert("Erro", err.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -96,11 +100,17 @@ export default function RegisterScreen() {
         secureTextEntry
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Cadastrar</Text>
+      <TouchableOpacity
+        style={[styles.button, isSubmitting && { opacity: 0.6 }]}
+        onPress={handleRegister}
+        disabled={isSubmitting}
+      >
+        <Text style={styles.buttonText}>
+          {isSubmitting ? "Cadastrando..." : "Cadastrar"}
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push("/")}>
+      <TouchableOpacity onPress={() => router.replace("/")}>
         <Text style={styles.link}>Já tem conta? Entrar</Text>
       </TouchableOpacity>
     </ScrollView>
